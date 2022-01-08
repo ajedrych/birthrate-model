@@ -7,6 +7,9 @@ library("lmtest")
 library("sandwich")
 library("knitr")
 library("tidyverse")
+library("lmtest")
+library("foreign")
+
 options(scipen = 999)
 
 #loading data
@@ -17,10 +20,17 @@ View(df)
 df1<-na.omit(df)
 str(df1) #types of variables
 
+pairs(df1[,0:10]) 
+
+
+library(corrplot)
+kor<-cor(df1)
+corrplot(kor, method="circle")
+
 #DEPENDENT VARIABLE - BIRTH RATE
 par(mfrow=c(1,2))  
 
-h <- hist(df1$birth_rate)
+h <- hist(df1$irth_rate)
 xfit <- seq(min(df1$birth_rate), max(df1$birth_rate), length = 40) 
 yfit <- dnorm(xfit, mean = mean(df1$birth_rate), sd = sd(df1$birth_rate)) 
 yfit <- yfit * diff(h$mids[1:2]) * length(df1$birth_rate) 
@@ -35,6 +45,16 @@ yfit <- yfit * diff(h$mids[1:2]) * length(df1$ln_birth_rate)
 lines(xfit, yfit, col = "red", lwd = 2)
 
 #birth_rate with log appears to have distribution more similar to the normal distribution
+
+#MODEL 1
+model1=lm(ln_birth_rate~covid19_cases + covid19_deaths + covid19_quarantine + marriage_rate + divorce_rate + 
+            budget_reve_pc + unemployment_rate + women_reproductive + femininity_ratio + avg_salary + women_working +
+            men_working+ median_house_price + education_expenditure + health_expenditure + social_expenditure +
+            family_expenditure +children+nursery_places+ doctors+family_benefits +population+houses+houses_area+ urbanisation_rate + bus_stops, data=df1)
+summary(model1)
+
+#test reset
+resettest(model1, power=2:3, type="fitted")
 
 #VARIABLE MARRIAGE RATE
 hist(df1$marriage_rate) #marriage_rate without log appears to have a distribution more similar to the normal distribution
@@ -82,16 +102,12 @@ g_ln_avg_salary
 
 #INTERACTION
 df1$nurseryxchildren=df1$nursery_places*df1$children
+df1$education_expenditurexchildren=df1$education_expenditure*df1$children
+
+df1$urbanisation_rate_2 = df1$urbanisation_rate*df1$urbanisation_rate
 
 
 
-#MODEL 1
-
-model1=lm(ln_birth_rate~if_university + covid19_cases + covid19_deaths + covid19_quarantine + marriage_rate + divorce_rate + 
-            budget_reve_pc + ln_unemployment_rate + women_reproductive + femininity_ratio + avg_salary + women_working +
-            women_working_all + median_house_price + house_ratio + education_expenditure + health_expenditure + social_expenditure +
-            family_expenditure + doctors + urbanisation_rate + bus_stops + nurseryxchildren, data=df1)
-summary(model1)
 
 #DIVORCE RATE
 hist(df1$divorce_rate) 
@@ -104,12 +120,7 @@ g_divorce
 g_ln_divorce<-ggplot(df1, aes(x=birth_rate, y=ln_divorce_rate)) +geom_point(color="red")
 g_ln_divorce
 
-#MODEL 2
-model2=lm(ln_birth_rate~if_university + covid19_cases + covid19_deaths + covid19_quarantine + marriage_rate + ln_divorce_rate + 
-            budget_reve_pc + ln_unemployment_rate + women_reproductive + femininity_ratio + avg_salary + women_working +
-            women_working_all + median_house_price + house_ratio + education_expenditure + health_expenditure + social_expenditure +
-            family_expenditure + doctors + urbanisation_rate + bus_stops + nurseryxchildren, data=df1)
-summary(model2)
+
 
 #WOMEN_WORKING
 hist(df1$women_working) 
@@ -123,7 +134,7 @@ model3=lm(ln_birth_rate~if_university + covid19_cases + covid19_deaths + covid19
             family_expenditure + doctors + urbanisation_rate + bus_stops + nurseryxchildren, data=df1)
 summary(model3)
 
-resettest(model3, power=2:3, type="fitted")
+resettest(model1, power=2:3, type="fitted")
 
 hist(df1$covid19_cases)
 df1$ln_covid19_cases = log(df1$covid19_cases)
