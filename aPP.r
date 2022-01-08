@@ -12,13 +12,13 @@ library("foreign")
 
 options(scipen = 999)
 
-#loading data
+#LOAD DATA
 df <- read_excel("baza_ekon.xlsx") 
 View(df)
 
-#delete NA
+#DELETE NA
 df1<-na.omit(df)
-str(df1) #types of variables
+str(df1) #TYPES OF VARIABLES
 
 pairs(df1[,0:10]) 
 
@@ -28,28 +28,82 @@ corrplot(kor, method="circle")
 
 ########################### VARIABLES CHECKING ###########################
 #DEPENDENT VARIABLE - BIRTH RATE
-par(mfrow=c(1,2))  
 
-h <- hist(df1$birth_rate)
-xfit <- seq(min(df1$birth_rate), max(df1$birth_rate), length = 40) 
-yfit <- dnorm(xfit, mean = mean(df1$birth_rate), sd = sd(df1$birth_rate)) 
-yfit <- yfit * diff(h$mids[1:2]) * length(df1$birth_rate) 
-lines(xfit, yfit, col = "red", lwd = 2)
+library(rcompanion)
+
+par(mfrow=c(1,2))  
+plotNormalHistogram(df1$birth_rate, prob = FALSE,
+                    main = "birth_rate and normal distribution",
+                    linecol = "red",
+                    length = 1000)
 
 df1$ln_birth_rate = log(df1$birth_rate)
 
-h <- hist(df1$ln_birth_rate)
-xfit <- seq(min(df1$ln_birth_rate), max(df1$ln_birth_rate), length = 40) 
-yfit <- dnorm(xfit, mean = mean(df1$ln_birth_rate), sd = sd(df1$ln_birth_rate)) 
-yfit <- yfit * diff(h$mids[1:2]) * length(df1$ln_birth_rate) 
-lines(xfit, yfit, col = "red", lwd = 2)
+plotNormalHistogram(df1$ln_birth_rate, prob = FALSE,
+                    main = "ln_birth_rate and normal distribution",
+                    linecol = "red",
+                    length = 1000)
 
 #birth_rate with log appears to have distribution more similar to the normal distribution
 
+########################### CREATE INTERACTION BETWEEN VARIABLES ###########################
+
+df1$nurseryxchildren=df1$nursery_places*df1$children
+df1$education_expenditurexchildren=df1$education_expenditure*df1$children
+
+########################### FIRST MODEL ###########################
+
+#MODEL 1
+model1=lm(ln_birth_rate~covid19_cases + covid19_deaths + covid19_quarantine + marriage_rate + divorce_rate + 
+            budget_reve_pc + unemployment_rate + women_reproductive + femininity_ratio + avg_salary + women_working +
+            men_working + median_house_price + house_ratio + houses_area_pc + avg_people_per_house + education_expenditurexchildren +
+            health_expenditure + social_expenditure + family_expenditure + nurseryxchildren + doctors  +
+            urbanisation_rate + bus_stops, data=df1)
+summary(model1)
+
+########################### VARIABLES CHECKING ###########################
+#VARIABLE COVID19_QUARANTINE
+
+plotNormalHistogram(df1$covid19_quarantine, prob = FALSE,
+                    main = "covid19_quarantine and normal distribution",
+                    linecol = "red",
+                    length = 1000) 
+
+df1$ln_covid19_quarantine = log(df1$covid19_quarantine)
+
+plotNormalHistogram(df1$ln_covid19_quarantine, prob = FALSE,
+                    main = "ln_covid19_quarantine and normal distribution",
+                    linecol = "red",
+                    length = 1000) 
+
+g_ln_covid19_quarantine<-ggplot(df1, aes(x=birth_rate, y=ln_covid19_quarantine)) +geom_point(color="red")
+g_ln_covid19_quarantine
+
+#covid19_quarantine with log appears to have a distribution more similar to the normal distribution
+
+########################### SECOND MODEL ###########################
+#MODEL 2
+model2=lm(ln_birth_rate~covid19_cases + covid19_deaths + ln_covid19_quarantine + marriage_rate + divorce_rate + 
+            budget_reve_pc + unemployment_rate + women_reproductive + femininity_ratio + avg_salary + women_working +
+            men_working + median_house_price + house_ratio + houses_area_pc + avg_people_per_house + education_expenditurexchildren +
+            health_expenditure + social_expenditure + family_expenditure + nurseryxchildren + doctors  +
+            urbanisation_rate + bus_stops, data=df1)
+summary(model2)
+
+########################### VARIABLES CHECKING ###########################
 #VARIABLE MARRIAGE RATE
-hist(df1$marriage_rate) 
+
+plotNormalHistogram(df1$marriage_rate, prob = FALSE,
+                    main = "marriage_rate and normal distribution",
+                    linecol = "red",
+                    length = 1000) 
+
 df1$ln_marriage_rate = log(df1$marriage_rate)
-hist(df1$ln_marriage_rate)
+
+plotNormalHistogram(df1$ln_marriage_rate, prob = FALSE,
+                    main = "ln_marriage_rate and normal distribution",
+                    linecol = "red",
+                    length = 1000) 
 
 g_marriage<-ggplot(df1, aes(x=birth_rate, y=marriage_rate)) +geom_point(color="red")
 g_marriage
@@ -57,21 +111,17 @@ g_marriage
 #marriage_rate without log appears to have a distribution more similar to the normal distribution
 
 #UNEMPLOYMENT RATE
-hist(df1$unemployment_rate)
+plotNormalHistogram(df1$unemployment_rate, prob = FALSE,
+                    main = "unemployment_rate and normal distribution",
+                    linecol = "red",
+                    length = 1000) 
+
 df1$ln_unemployment_rate = log(df1$unemployment_rate)
-hist(df1$ln_unemployment_rate) 
 
-h <- hist(df1$unemployment_rate)
-xfit <- seq(min(df1$unemployment_rate), max(df1$unemployment_rate), length = 40) 
-yfit <- dnorm(xfit, mean = mean(df1$unemployment_rate), sd = sd(df1$unemployment_rate)) 
-yfit <- yfit * diff(h$mids[1:2]) * length(df1$unemployment_rate) 
-lines(xfit, yfit, col = "red", lwd = 2)
-
-h <- hist(df1$ln_unemployment_rate)
-xfit <- seq(min(df1$ln_unemployment_rate), max(df1$ln_unemployment_rate), length = 40) 
-yfit <- dnorm(xfit, mean = mean(df1$ln_unemployment_rate), sd = sd(df1$ln_unemployment_rate)) 
-yfit <- yfit * diff(h$mids[1:2]) * length(df1$ln_unemployment_rate) 
-lines(xfit, yfit, col = "red", lwd = 2)
+plotNormalHistogram(df1$ln_unemployment_rate, prob = FALSE,
+                    main = "unemployment_rate and normal distribution",
+                    linecol = "red",
+                    length = 1000) 
 
 g_unemployment<-ggplot(df1, aes(x=birth_rate, y=unemployment_rate)) + geom_point(color="red")
 g_unemployment
@@ -81,9 +131,27 @@ g_ln_unemployment
 
 #log from unemployment_rate looks better
 
-#INTERACTION
-df1$nurseryxchildren=df1$nursery_places*df1$children
-df1$education_expenditurexchildren=df1$education_expenditure*df1$children
+########################### ADD variablle  ###########################
+
+df1$budget_reve_pc_2 = df1$budget_reve_pc**2
+df1$women_reproductive_2 = df1$women_reproductive**2
+
+########################### MODEL 2 ###########################
+
+#MODEL2
+model2=lm(ln_birth_rate~covid19_cases + covid19_deaths + covid19_quarantine + marriage_rate + divorce_rate + 
+            budget_reve_pc + ln_unemployment_rate + women_reproductive + femininity_ratio + avg_salary + women_working +
+            men_working + median_house_price + house_ratio + houses_area_pc + avg_people_per_house + education_expenditurexchildren +
+            health_expenditure + social_expenditure + family_expenditure + nurseryxchildren + doctors + family_benefits +
+            urbanisation_rate + bus_stops, data=df1)
+summary(model2)
+
+########################### VARIABLES CHECKING ###########################
+
+
+
+
+
 
 #MODEL 1
 model1=lm(ln_birth_rate~covid19_cases + covid19_deaths + covid19_quarantine + marriage_rate + divorce_rate + 
@@ -94,7 +162,7 @@ model1=lm(ln_birth_rate~covid19_cases + covid19_deaths + covid19_quarantine + ma
 summary(model1)
 
 #test reset
-resettest(model1, power=2:3, type="fitted")
+resettest(model2, power=2:3, type="fitted")
 
 
 #MODEL 2
@@ -172,7 +240,7 @@ library("foreign")
 
 #p-value < 0.05 czyli odrzucamy h0 o prawidłowej formie funkcyjnej
 
-resettest(model5, power=2:3, type="regressor")
+resettest(model1, power=2:3, type="regressor")
 
 
 model3=lm(birth_rate~covid19_cases+covid19_deaths+covid19_quarantine+marriage_rate+divorce_rate+budget_reve_pc+unemployment_rate+women_reproductive+femininity_ratio+avg_salary+women_working+
