@@ -22,15 +22,15 @@ str(df1) #types of variables
 
 pairs(df1[,0:10]) 
 
-
 library(corrplot)
 kor<-cor(df1)
 corrplot(kor, method="circle")
 
+########################### VARIABLES CHECKING ###########################
 #DEPENDENT VARIABLE - BIRTH RATE
 par(mfrow=c(1,2))  
 
-h <- hist(df1$irth_rate)
+h <- hist(df1$birth_rate)
 xfit <- seq(min(df1$birth_rate), max(df1$birth_rate), length = 40) 
 yfit <- dnorm(xfit, mean = mean(df1$birth_rate), sd = sd(df1$birth_rate)) 
 yfit <- yfit * diff(h$mids[1:2]) * length(df1$birth_rate) 
@@ -46,30 +46,20 @@ lines(xfit, yfit, col = "red", lwd = 2)
 
 #birth_rate with log appears to have distribution more similar to the normal distribution
 
-#MODEL 1
-model1=lm(ln_birth_rate~covid19_cases + covid19_deaths + covid19_quarantine + marriage_rate + divorce_rate + 
-            budget_reve_pc + unemployment_rate + women_reproductive + femininity_ratio + avg_salary + women_working +
-            men_working+ median_house_price + education_expenditure + health_expenditure + social_expenditure +
-            family_expenditure +children+nursery_places+ doctors+family_benefits +population+houses+houses_area+ urbanisation_rate + bus_stops, data=df1)
-summary(model1)
-
-#test reset
-resettest(model1, power=2:3, type="fitted")
-
 #VARIABLE MARRIAGE RATE
-hist(df1$marriage_rate) #marriage_rate without log appears to have a distribution more similar to the normal distribution
+hist(df1$marriage_rate) 
 df1$ln_marriage_rate = log(df1$marriage_rate)
 hist(df1$ln_marriage_rate)
 
 g_marriage<-ggplot(df1, aes(x=birth_rate, y=marriage_rate)) +geom_point(color="red")
 g_marriage
 
+#marriage_rate without log appears to have a distribution more similar to the normal distribution
+
 #UNEMPLOYMENT RATE
 hist(df1$unemployment_rate)
-
 df1$ln_unemployment_rate = log(df1$unemployment_rate)
-
-hist(df1$ln_unemployment_rate) #log from unemployment_rate looks better
+hist(df1$ln_unemployment_rate) 
 
 h <- hist(df1$unemployment_rate)
 xfit <- seq(min(df1$unemployment_rate), max(df1$unemployment_rate), length = 40) 
@@ -88,6 +78,32 @@ g_unemployment
 
 g_ln_unemployment<-ggplot(df1, aes(x=birth_rate, y=ln_unemployment_rate)) + geom_point(color="red")
 g_ln_unemployment
+
+#log from unemployment_rate looks better
+
+#INTERACTION
+df1$nurseryxchildren=df1$nursery_places*df1$children
+df1$education_expenditurexchildren=df1$education_expenditure*df1$children
+
+#MODEL 1
+model1=lm(ln_birth_rate~covid19_cases + covid19_deaths + covid19_quarantine + marriage_rate + divorce_rate + 
+            budget_reve_pc + ln_unemployment_rate + women_reproductive + femininity_ratio + avg_salary + women_working +
+            men_working + median_house_price + house_ratio + houses_area_pc + avg_people_per_house + education_expenditurexchildren +
+            health_expenditure + social_expenditure + family_expenditure + nurseryxchildren + doctors + family_benefits +
+            urbanisation_rate + bus_stops, data=df1)
+summary(model1)
+
+#test reset
+resettest(model1, power=2:3, type="fitted")
+
+
+#MODEL 2
+model1=lm(ln_birth_rate~covid19_cases + covid19_deaths + covid19_quarantine + marriage_rate + divorce_rate + 
+            budget_reve_pc + unemployment_rate + women_reproductive + femininity_ratio + avg_salary + women_working +
+            men_working + median_house_price + house_ratio + houses_area_pc + avg_people_per_house + education_expenditure +
+            health_expenditure + social_expenditure + family_expenditure + children + nursery_places + doctors + family_benefits +
+            population + urbanisation_rate + bus_stops, data=df1)
+summary(model1)
 
 #AVERAGE SALARY
 g_avg_salary<-ggplot(df1, aes(x=birth_rate, y=avg_salary)) + geom_point(color="red")
