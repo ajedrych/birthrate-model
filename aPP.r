@@ -52,7 +52,6 @@ df1$nurseryxchildren=df1$nursery_places*df1$children
 df1$education_expenditurexchildren=df1$education_expenditure*df1$children
 
 ########################### FIRST MODEL ###########################
-
 #MODEL 1
 model1=lm(ln_birth_rate~covid19_cases + covid19_deaths + covid19_quarantine + marriage_rate + divorce_rate + 
             budget_reve_pc + unemployment_rate + women_reproductive + femininity_ratio + avg_salary + women_working +
@@ -91,7 +90,209 @@ model2=lm(ln_birth_rate~covid19_cases + covid19_deaths + ln_covid19_quarantine +
 summary(model2)
 
 ########################### VARIABLES CHECKING ###########################
-#VARIABLE MARRIAGE RATE
+#VARIABLE BUDGET_REVE_PC
+plotNormalHistogram(df1$budget_reve_pc, prob = FALSE,
+                    main = "budget_reve_pc and normal distribution",
+                    linecol = "red",
+                    length = 1000) 
+
+df1$ln_budget_reve_pc = log(df1$budget_reve_pc)
+
+plotNormalHistogram(df1$ln_budget_reve_pc, prob = FALSE,
+                    main = "ln_budget_reve_pc and normal distribution",
+                    linecol = "red",
+                    length = 1000) 
+
+g_ln_budget_reve_pc<-ggplot(df1, aes(x=birth_rate, y=ln_budget_reve_pc)) +geom_point(color="red")
+g_ln_budget_reve_pc
+
+#remove variable budget_reve_pc from model
+
+########################### THIRD MODEL ###########################
+#MODEL 3
+model3=lm(ln_birth_rate~covid19_cases + covid19_deaths + ln_covid19_quarantine + marriage_rate + divorce_rate + 
+            unemployment_rate + women_reproductive + femininity_ratio + avg_salary + women_working +
+            men_working + median_house_price + house_ratio + houses_area_pc + avg_people_per_house + education_expenditurexchildren +
+            health_expenditure + social_expenditure + family_expenditure + nurseryxchildren + doctors  +
+            urbanisation_rate + bus_stops, data=df1)
+summary(model3)
+
+########################### VARIABLES CHECKING ###########################
+#VARIABLE WOMEN_WORKING
+plotNormalHistogram(df1$women_working, prob = FALSE,
+                    main = "women_working and normal distribution",
+                    linecol = "red",
+                    length = 1000) 
+
+df1$ln_women_working = log(df1$women_working)
+
+plotNormalHistogram(df1$ln_women_working, prob = FALSE,
+                    main = "ln_women_working and normal distribution",
+                    linecol = "red",
+                    length = 1000) 
+
+g_ln_women_working<-ggplot(df1, aes(x=birth_rate, y=ln_women_working)) +geom_point(color="red")
+g_ln_women_working
+
+#women_working with log appears to have a distribution more similar to the normal distribution, but if we change women_working
+#to ln_women_working in model, we get a little bit worse r^2 statistics and p-value of variable is still the highest
+#so I decided to remove variable from model
+
+########################### FOURTH MODEL ###########################
+#MODEL 4
+model4=lm(ln_birth_rate~covid19_cases + covid19_deaths + ln_covid19_quarantine + marriage_rate + divorce_rate + 
+            unemployment_rate + women_reproductive + femininity_ratio + avg_salary +
+            men_working + median_house_price + house_ratio + houses_area_pc + avg_people_per_house + education_expenditurexchildren +
+            health_expenditure + social_expenditure + family_expenditure + nurseryxchildren + doctors  +
+            urbanisation_rate + bus_stops, data=df1)
+summary(model4)
+
+########################### VARIABLES CHECKING ###########################
+#VARIABLE AVG_PEOPLE_PER_HOUSE
+g_avg_people_per_house<-ggplot(df1, aes(x=birth_rate, y=avg_people_per_house)) +geom_point(color="red")
+g_avg_people_per_house
+
+plotNormalHistogram(df1$avg_people_per_house, prob = FALSE,
+                    main = "women_working and normal distribution",
+                    linecol = "red",
+                    length = 1000) 
+
+df1$ln_avg_people_per_house = log(df1$avg_people_per_house)
+
+plotNormalHistogram(df1$ln_avg_people_per_house, prob = FALSE,
+                    main = "ln_avg_people_per_house and normal distribution",
+                    linecol = "red",
+                    length = 1000) 
+
+g_ln_avg_people_per_house<-ggplot(df1, aes(x=birth_rate, y=ln_avg_people_per_house)) +geom_point(color="red")
+g_ln_avg_people_per_house
+
+df1$avg_people_per_house_2 = df1$avg_people_per_house**2
+
+g_avg_people_per_house_2<-ggplot(df1, aes(x=birth_rate, y=avg_people_per_house_2)) +geom_point(color="red")
+g_avg_people_per_house_2
+
+plotNormalHistogram(df1$avg_people_per_house_2, prob = FALSE,
+                    main = "women_working and normal distribution",
+                    linecol = "red",
+                    length = 1000)
+
+#avg_people_per_house without log appears to have a distribution more similar to the normal distribution, but if we try to change avg_people_per_house
+#to ln_avg_people_per_house in model, we get a little bit worse r^2 statistics and p-value of variable is still the highest
+#so I decided to remove variable from model
+#the same situation if I try to square the variable
+
+########################### FIFTH MODEL ###########################
+#MODEL 5
+model5=lm(ln_birth_rate~covid19_cases + covid19_deaths + ln_covid19_quarantine + marriage_rate + divorce_rate + 
+            unemployment_rate + women_reproductive + femininity_ratio + avg_salary +
+            men_working + median_house_price + house_ratio + houses_area_pc + education_expenditurexchildren +
+            health_expenditure + social_expenditure + family_expenditure + nurseryxchildren + doctors  +
+            urbanisation_rate + bus_stops, data=df1)
+summary(model5)
+
+########################### VARIABLES CHECKING ###########################
+#VARIABLE URBANISATION_RATE
+g_urbanisation_rate<-ggplot(df1, aes(x=birth_rate, y=urbanisation_rate)) +geom_point(color="red")
+g_urbanisation_rate
+
+plotNormalHistogram(df1$urbanisation_rate, prob = FALSE,
+                    main = "urbanisation_rate and normal distribution",
+                    linecol = "red",
+                    length = 1000) 
+
+df1$ln_urbanisation_rate = log(df1$urbanisation_rate)
+
+plotNormalHistogram(df1$ln_urbanisation_rate, prob = FALSE,
+                    main = "ln_urbanisation_rate and normal distribution",
+                    linecol = "red",
+                    length = 1000) 
+
+g_ln_urbanisation_rate<-ggplot(df1, aes(x=birth_rate, y=ln_urbanisation_rate)) +geom_point(color="red")
+g_ln_urbanisation_rate
+
+#urbanisation_rate without log appears to have a distribution more similar to the normal distribution, but if we try to change urbanisation_rate
+#to ln_urbanisation_rate in model, we get a little bit worse r^2 statistics and p-value of variable is still the highest
+#so I decided to remove variable from model
+
+########################### SIXTH MODEL ###########################
+#MODEL 6
+model6=lm(ln_birth_rate~covid19_cases + covid19_deaths + ln_covid19_quarantine + marriage_rate + divorce_rate + 
+            unemployment_rate + women_reproductive + femininity_ratio + avg_salary +
+            men_working + median_house_price + house_ratio + houses_area_pc + education_expenditurexchildren +
+            health_expenditure + social_expenditure + family_expenditure + nurseryxchildren + doctors + bus_stops, data=df1)
+summary(model6)
+
+#the only statistically insignificant variable is ln_covid19_quarantine, which we have already logarithmised,
+#so I decide to remove it
+
+########################### SEVENTH MODEL ###########################
+#MODEL 7
+model7=lm(ln_birth_rate~covid19_cases + covid19_deaths + marriage_rate + divorce_rate + 
+            unemployment_rate + women_reproductive + femininity_ratio + avg_salary +
+            men_working + median_house_price + house_ratio + houses_area_pc + education_expenditurexchildren +
+            health_expenditure + social_expenditure + family_expenditure + nurseryxchildren + doctors + bus_stops, data=df1)
+summary(model7)
+
+########################### VARIABLES CHECKING ###########################
+#VARIABLE FEMININITY_RATE
+g_femininity_ratio<-ggplot(df1, aes(x=birth_rate, y=femininity_ratio)) +geom_point(color="red")
+g_femininity_ratio
+
+plotNormalHistogram(df1$femininity_ratio, prob = FALSE,
+                    main = "femininity_ratio and normal distribution",
+                    linecol = "red",
+                    length = 1000) 
+
+df1$ln_femininity_ratio = log(df1$femininity_ratio)
+
+plotNormalHistogram(df1$ln_femininity_ratio, prob = FALSE,
+                    main = "ln_femininity_ratio and normal distribution",
+                    linecol = "red",
+                    length = 1000) 
+
+g_ln_femininity_ratio<-ggplot(df1, aes(x=birth_rate, y=ln_femininity_ratio)) +geom_point(color="red")
+g_ln_femininity_ratio
+
+
+#femininity_ratio without log appears to have a distribution more similar to the normal distribution, but if we try to change femininity_ratio
+#to ln_femininity_ratio in model, we get a little bit worse r^2 statistics and p-value of variable is still the highest
+#so I decided to remove variable from model
+
+########################### EIGHTH MODEL ###########################
+#MODEL 8
+model8=lm(ln_birth_rate~covid19_cases + covid19_deaths + marriage_rate + divorce_rate + 
+            unemployment_rate + women_reproductive + avg_salary +
+            men_working + median_house_price + house_ratio + houses_area_pc + education_expenditurexchildren +
+            health_expenditure + social_expenditure + family_expenditure + nurseryxchildren + doctors + bus_stops, data=df1)
+summary(model8)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 plotNormalHistogram(df1$marriage_rate, prob = FALSE,
                     main = "marriage_rate and normal distribution",
@@ -162,7 +363,7 @@ model1=lm(ln_birth_rate~covid19_cases + covid19_deaths + covid19_quarantine + ma
 summary(model1)
 
 #test reset
-resettest(model2, power=2:3, type="fitted")
+resettest(model8, power=2:3, type="fitted")
 
 
 #MODEL 2
@@ -218,7 +419,7 @@ model3=lm(ln_birth_rate~if_university + covid19_cases + covid19_deaths + covid19
             family_expenditure + doctors + urbanisation_rate + bus_stops + nurseryxchildren, data=df1)
 summary(model3)
 
-resettest(model1, power=2:3, type="fitted")
+resettest(model6, power=2:3, type="fitted")
 
 hist(df1$covid19_cases)
 df1$ln_covid19_cases = log(df1$covid19_cases)
@@ -240,7 +441,7 @@ library("foreign")
 
 #p-value < 0.05 czyli odrzucamy h0 o prawidłowej formie funkcyjnej
 
-resettest(model1, power=2:3, type="regressor")
+resettest(model8, power=2:3, type="regressor")
 
 
 model3=lm(birth_rate~covid19_cases+covid19_deaths+covid19_quarantine+marriage_rate+divorce_rate+budget_reve_pc+unemployment_rate+women_reproductive+femininity_ratio+avg_salary+women_working+
