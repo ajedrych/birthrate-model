@@ -24,8 +24,8 @@ corrplot(kor, method="circle")
 #DEPENDENT VARIABLE - BIRTH RATE
 
 library(rcompanion)
+par(mfrow=c(1,2))
 
-par(mfrow=c(1,2))  
 plotNormalHistogram(df1$birth_rate, prob = FALSE,
                     main = "birth_rate and normal distribution",
                     linecol = "red",
@@ -654,9 +654,32 @@ dwtest(model3)
 bgtest(model3)
 
 #durbin watson
+durbinWatsonTest(model3) 
+dwtest(model3) 
 
 
+#LEVERAGE
+leveragePlots(model3)
+dzwignie<-hatvalues(model3)
+which.max(dzwignie)
 
+#ODLEGLOSC COOKA (OBSERWACJE WPLYWOWE)
+par(mfrow=c(1,1))
+cutoff <- 4/((nrow(df1)))
+plot(model3, which=4, cook.levels=cutoff)
+#obserwacje podejrzane 179, 345, 379
+
+
+#standaryzowane reszty outliers
+rstandard(model3)[abs(rstandard(model3)) > 2] # które obserwacje większe niż 2 co do wartosci bezwzglednej
+
+avPlots(model3)
+
+
+#wspolliniowosc
+vif(model3)
+
+plot(model3,3)
 
 
 install.packages("stargazer")
