@@ -87,39 +87,326 @@ boxplot_ln_birth_rate <- ggplot( data.frame(df1$ln_birth_rate), aes(y=df1$ln_bir
   xlab("")
 boxplot_ln_birth_rate
 
+###################################################################
+########################### FIRST MODEL ###########################
+#MODEL 1
+model1=lm(ln_birth_rate~covid19_cases + covid19_deaths + covid19_quarantine + marriage_rate + divorce_rate +
+            budget_reve_pc + unemployment_rate + women_reproductive + femininity_ratio + avg_salary +
+            women_working + men_working + median_house_price + house_ratio + houses_area_pc +
+            avg_people_per_house + education_expenditure + health_expenditure + social_expenditure +
+            family_expenditure + children + nursery_places + doctors+ urbanisation_rate + bus_stops, data=df1)
+summary(model1)
+
+#R^2 = 0.7696
+#adj. r^2 = 0.7533
+
+library("stargazer")
+stargazer(model1, type="text", align= TRUE, style="default", df=FALSE)
+
+############################################################################################
+########################### CREATE INTERACTION BETWEEN VARIABLES ###########################
+
+df1$nurseryxchildren=df1$nursery_places*df1$children
+df1$education_expenditurexchildren=df1$education_expenditure*df1$children
+
+df1$houses_area_pc_2 = df1$houses_area_pc**2
+
+##################################################################
+########################### NEXT MODEL ###########################
+#MODEL 2 - ADD INTERACTONS AND VARIABLE^2
+model2=lm(ln_birth_rate~covid19_cases + covid19_deaths + covid19_quarantine + marriage_rate + divorce_rate +
+            budget_reve_pc + unemployment_rate + women_reproductive + femininity_ratio + avg_salary +
+            women_working + men_working + median_house_price + house_ratio + houses_area_pc + houses_area_pc_2 +
+            avg_people_per_house + education_expenditure + health_expenditure + social_expenditure +
+            family_expenditure + children + nursery_places + doctors+ urbanisation_rate + bus_stops +
+            nurseryxchildren + education_expenditurexchildren, data=df1)
+summary(model2)
+
+#R^2 = 0.7783
+#adj. r^2 = 0.7606 better
+
+stargazer(model2, type="text", align= TRUE, style="default", df=FALSE)
+
+##################################################################
+########################### NEXT MODEL ###########################
+#MODEL 3 - LOG FOR AVG_SALARY, UNEMPLOYMENT_RATE AND MEDIAN_HOUSE_PRICE 
+model3=lm(ln_birth_rate~covid19_cases + covid19_deaths + covid19_quarantine + marriage_rate + divorce_rate +
+            budget_reve_pc + ln_unemployment_rate + women_reproductive + femininity_ratio + ln_avg_salary +
+            women_working + men_working + ln_median_house_price + house_ratio + houses_area_pc + houses_area_pc_2 +
+            avg_people_per_house + education_expenditure + health_expenditure + social_expenditure +
+            family_expenditure + children + nursery_places + doctors+ urbanisation_rate + bus_stops +
+            nurseryxchildren + education_expenditurexchildren, data=df1)
+summary(model3)
+
+#R^2 = 0.7811
+#adj. r^2 = 0.7626 better
+
+##################################################################
+########################### GETS ###########################
+
+library("car")
+linearHypothesis(model=model3, c("avg_people_per_house=0"))
+#p-value = 0.9901, so variable is insignificant
+
+linearHypothesis(model=model3, c("avg_people_per_house=0", "covid19_quarantine=0"))
+#p-value = 0.9976, so variables are jointly insignificant
+
+linearHypothesis(model=model3, c("avg_people_per_house=0", "covid19_quarantine=0", "women_working=0"))
+#p-value = 0.9837, so variables are jointly insignificant
+
+linearHypothesis(model=model3, c("avg_people_per_house=0", "covid19_quarantine=0", "women_working=0",
+                                 "houses_area_pc_2=0"))
+#p-value = 0.9842, so variables are jointly insignificant
+
+linearHypothesis(model=model3, c("avg_people_per_house=0", "covid19_quarantine=0", "women_working=0",
+                                 "houses_area_pc_2=0", "budget_reve_pc=0"))
+#p-value = 0.99, so variables are jointly insignificant
+
+linearHypothesis(model=model3, c("avg_people_per_house=0", "covid19_quarantine=0", "women_working=0",
+                                 "houses_area_pc_2=0", "budget_reve_pc=0", "houses_area_pc=0"))
+#p-value = 0.8697, so variables are jointly insignificant
+
+linearHypothesis(model=model3, c("avg_people_per_house=0", "covid19_quarantine=0", "women_working=0",
+                                 "houses_area_pc_2=0", "budget_reve_pc=0", "houses_area_pc=0",
+                                 "children=0"))
+#p-value = 0.8613, so variables are jointly insignificant
+
+linearHypothesis(model=model3, c("avg_people_per_house=0", "covid19_quarantine=0", "women_working=0",
+                                 "houses_area_pc_2=0", "budget_reve_pc=0", "houses_area_pc=0",
+                                 "children=0", "nursery_places=0"))
+#p-value = 0.7913, so variables are jointly insignificant
+
+linearHypothesis(model=model3, c("avg_people_per_house=0", "covid19_quarantine=0", "women_working=0",
+                                 "houses_area_pc_2=0", "budget_reve_pc=0", "houses_area_pc=0",
+                                 "children=0", "nursery_places=0", "education_expenditure=0"))
+#p-value = 0.5598, so variables are jointly insignificant
+
+linearHypothesis(model=model3, c("avg_people_per_house=0", "covid19_quarantine=0", "women_working=0",
+                                 "houses_area_pc_2=0", "budget_reve_pc=0", "houses_area_pc=0",
+                                 "children=0", "nursery_places=0", "education_expenditure=0",
+                                 "urbanisation_rate=0"))
+#p-value = 0.4036, so variables are jointly insignificant
+
+linearHypothesis(model=model3, c("avg_people_per_house=0", "covid19_quarantine=0", "women_working=0",
+                                 "houses_area_pc_2=0", "budget_reve_pc=0", "houses_area_pc=0",
+                                 "children=0", "nursery_places=0", "education_expenditure=0",
+                                 "urbanisation_rate=0", "femininity_ratio=0"))
+#p-value = 0.2928, so variables are jointly insignificant
+
+linearHypothesis(model=model3, c("avg_people_per_house=0", "covid19_quarantine=0", "women_working=0",
+                                 "houses_area_pc_2=0", "budget_reve_pc=0", "houses_area_pc=0",
+                                 "children=0", "nursery_places=0", "education_expenditure=0",
+                                 "urbanisation_rate=0", "femininity_ratio=0", "men_working=0"))
+#p-value = 0.1745, but p-value of men_working variable, so I want to check model before removing this variable
+
+##################################################################
+########################### NEXT MODEL ###########################
+#MODEL 4 - REMOVE VARIABLE AFTER GETS
+model4=lm(ln_birth_rate~covid19_cases + covid19_deaths + marriage_rate + divorce_rate + ln_unemployment_rate + women_reproductive + ln_avg_salary +
+            men_working + ln_median_house_price + house_ratio + health_expenditure + social_expenditure + family_expenditure + doctors + bus_stops +
+            nurseryxchildren + education_expenditurexchildren, data=df1)
+summary(model4)
+
+#R^2 = 0.7729
+#adj. r^2 = 0.7623 better
+
+##################################################################
+########################### FINAL MODEL ###########################
+#MODEL 5 - REMOVE HEALTH_EXPENDITURE
+model5=lm(ln_birth_rate~covid19_cases + covid19_deaths + marriage_rate + divorce_rate + ln_unemployment_rate + women_reproductive + ln_avg_salary +
+            men_working + ln_median_house_price + house_ratio + social_expenditure + family_expenditure + doctors + bus_stops +
+            nurseryxchildren + education_expenditurexchildren, data=df1)
+summary(model5)
+
+#R^2 = 0.771
+#adj. r^2 = 0.7609 
+
+stargazer(model3, model4, model5, type="text", align= TRUE, style="default", df=TRUE)
+
+##################################################################
+########################### RESET TEST ###########################
+
+library("lmtest")
+library("foreign")
+
+resettest(model5, power=2:3, type="fitted")
+# p-value = 0.4024 and it's more than 0.05, OK
+
+resettest(model5, power=2:3, type="regressor")
+#p-value < 0.05, but the fitted version is OK
+
 ##########################################################################
+########################### BREUSCH PAGAN TEST ###########################
+
+bptest(model5, studentize=TRUE)
+#p-value = 0.5237 > 0.05; OK
+
+########################################################################
+########################### JARQUE-BERA TEST ###########################
+
+jarque.bera.test(model5$residuals)
+#p-value = 0.2998 > 0.05; OK
+
+########################################################################
+########################### DURBIN-WATSON TEST ###########################
+
+dwtest(model5)
+#p-value = 0.0002726 < 0.05
+#autocorrelation
+
+
+#breuscha godfreya
+bgtest(model5)
+#p-value = 0.01053 < 0.05 -> autocorrelation
+
+##########################################################################
+#LEVERAGE
+# u mnie obserwacja nietypowa to >= 2K/N, czyli 2*19/380 = 0.01
+library("car")
+leveragePlots(model5)
+dzwignie<-hatvalues(model5)
+which.max(dzwignie)
+
+#ODLEGLOSC COOKA (OBSERWACJE WPLYWOWE)
+par(mfrow=c(1,1))
+cutoff <- 4/((nrow(df1)))
+plot(model19, which=4, cook.levels=cutoff)
+#obserwacje podejrzane 179, 345, 379
+
+
+#standaryzowane reszty (outliers)
+# gsy ich wartosci >2 to obserwacje nietypowe
+rstandard(model19)[abs(rstandard(model19)) > 2] # które obserwacje większe niż 2 co do wartosci bezwzglednej
+
+#overfitting lub underfitting formy funkcyjnej
+avPlots(model19)
+
+
+#wspolliniowosc
+# jesli vif >10, to zmienna objasniajaca jest wspolliniowa
+vif(model19)
+#divorce_rate vif = 19,28449
+
+
+plot(model19,3)
+
+# SUBSET OF VARIABLES USED IN MODEL 3
+colnames(df1)
+df1_subset <- df1[,c(3,6,9,11,15,21,28,29,31,34,38,44,48,50,51,52,59)]
+summary(df1_subset)
+
+# CORRELATION PLOT MODEL 3
+library(corrplot)
+kor_subset<-cor(df1_subset)
+corrplot(kor_subset, method="circle")
+
+# STATISTICS  MODEL 3
+library("stargazer")
+stargazer(as.data.frame(df1_subset), type = "text")
+
+
+
+
+
+
+#######################################################################
+########################### VARIABLES STATS ###########################
+#VARIABLE UNEMPLOYMENT_RATE
+
+plotNormalHistogram(df1$unemployment_rate, prob = FALSE,
+                    main = "unemployment_rate and normal distribution",
+                    linecol = "red",
+                    length = 1000) 
+
+df1$ln_unemployment_rate = log(df1$unemployment_rate)
+
+plotNormalHistogram(df1$ln_unemployment_rate, prob = FALSE,
+                    main = "ln_unemployment_rate and normal distribution",
+                    linecol = "red",
+                    length = 1000) 
+
+jarque.bera.test(df1$unemployment_rate) #p-value < 0.05, I reject H0 about normal distribution
+jarque.bera.test(df1$ln_unemployment_rate) #p-value <0.05, but higher than in previous case
+
+describe(df1$unemployment_rate)
+
 ########################### VARIABLES CHECKING ###########################
-# VARIABLE COVID19_CASES
+#VARIABLE AVG_SALARY
 
-plotNormalHistogram(df1$covid19_cases, prob = FALSE,
-                    main = "covid19_cases and normal distribution",
+g_avg_salary<-ggplot(df1, aes(x=birth_rate, y=avg_salary)) +geom_point(color="red")
+g_avg_salary
+
+par(mfrow=c(1,2))
+plotNormalHistogram(df1$avg_salary, prob = FALSE,
+                    main = "avg_salary and normal distribution",
+                    linecol = "red",
+                    length = 1000) 
+library(psych)
+describe(df1$avg_salary)
+summary(df1$avg_salary)
+
+df1$ln_avg_salary = log(df1$avg_salary)
+
+plotNormalHistogram(df1$ln_avg_salary, prob = FALSE,
+                    main = "ln_avg_salary and normal distribution",
                     linecol = "red",
                     length = 1000) 
 
-df1$ln_covid19_cases = log(df1$covid19_cases)
+g_ln_avg_salary<-ggplot(df1, aes(x=birth_rate, y=ln_avg_salary)) +geom_point(color="red")
+g_ln_avg_salary
 
-plotNormalHistogram(df1$ln_covid19_cases, prob = FALSE,
-                    main = "ln_covid19_cases and normal distribution",
-                    linecol = "red",
-                    length = 1000) 
-
-g_ln_covid19_cases<-ggplot(df1, aes(x=birth_rate, y=ln_covid19_cases)) +geom_point(color="red")
-g_ln_covid19_cases
-
-jarque.bera.test(df1$covid19_cases) #p-value < 0.05, I reject H0 about normal distribution
-jarque.bera.test(df1$ln_covid19_cases) #p-value < 0.05, I reject H0 about normal distribution
-
-#ln_covid19_cases appears to have a distribution more similar to the normal distribution
+jarque.bera.test(df1$avg_salary) #p-value < 0.05, I reject H0 about normal distribution
+jarque.bera.test(df1$ln_avg_salary) #p-value <0.05
 
 ########################### VARIABLES CHECKING ###########################
-#VARIABLE COVID19_DEATHS
+#VARIABLE MEDIAN_HOUSE_PRICE
 
-plotNormalHistogram(df1$covid19_deaths, prob = FALSE,
-                    main = "covid19_deaths and normal distribution",
+jarque.bera.test(df1$median_house_price) #p-value < 0.05, I reject H0 about normal distribution
+df1$ln_median_house_price = log(df1$median_house_price)
+jarque.bera.test(df1$ln_median_house_price) #p-value < 0.05, but higher than in previous case
+
+plotNormalHistogram(df1$median_house_price, prob = FALSE,
+                    main = "median_house_price and normal distribution",
                     linecol = "red",
                     length = 1000) 
 
-#covid19_deaths has values equal to 0, so I can't use the logarithm, because I get infinity values (log from 0 is equal to inf)
+plotNormalHistogram(df1$ln_median_house_price, prob = FALSE,
+                    main = "ln_median_house_price and normal distribution",
+                    linecol = "red",
+                    length = 1000)
+
+describe(df1$median_house_price)
+
+
+
+
+
+
+
+
+
+
+
+
+########################### VARIABLES CHECKING ###########################
+#VARIABLE WOMEN_WORKING
+plotNormalHistogram(df1$women_working, prob = FALSE,
+                    main = "women_working and normal distribution",
+                    linecol = "red",
+                    length = 1000) 
+
+df1$ln_women_working = log(df1$women_working)
+
+plotNormalHistogram(df1$ln_women_working, prob = FALSE,
+                    main = "ln_women_working and normal distribution",
+                    linecol = "red",
+                    length = 1000) 
+
+g_ln_women_working<-ggplot(df1, aes(x=birth_rate, y=ln_women_working)) +geom_point(color="red")
+g_ln_women_working
+
+jarque.bera.test(df1$women_working) #p-value < 0.05, I reject H0 about normal distribution
+jarque.bera.test(df1$ln_women_working) #p-value > 0.05
 
 ########################### VARIABLES CHECKING ###########################
 #VARIABLE COVID19_QUARANTINE
@@ -142,6 +429,182 @@ g_ln_covid19_quarantine
 jarque.bera.test(df1$covid19_quarantine) #p-value < 0.05, I reject H0 about normal distribution
 jarque.bera.test(df1$ln_covid19_quarantine) #p-value < 0.05, so I reject H0 about normal distribution, but p-value is higher
 #than in previous test
+
+########################### VARIABLES CHECKING ###########################
+#VARIABLE EDUCATION_EXPENDITURE
+
+jarque.bera.test(df1$education_expenditure) #p-value < 0.05, I reject H0 about normal distribution
+df1$ln_education_expenditure = log(df1$education_expenditure)
+jarque.bera.test(df1$ln_education_expenditure) #p-value < 0.05
+
+plotNormalHistogram(df1$education_expenditure, prob = FALSE,
+                    main = "education_expenditure and normal distribution",
+                    linecol = "red",
+                    length = 1000) 
+
+plotNormalHistogram(df1$ln_education_expenditure, prob = FALSE,
+                    main = "ln_education_expenditure and normal distribution",
+                    linecol = "red",
+                    length = 1000) 
+
+########################### VARIABLES CHECKING ###########################
+#VARIABLE HOUSES_AREA_PC
+
+jarque.bera.test(df1$houses_area_pc) #p-value < 0.05, I reject H0 about normal distribution
+df1$ln_houses_area_pc = log(df1$houses_area_pc)
+jarque.bera.test(df1$ln_houses_area_pc) #p-value < 0.05, but higher than without log
+
+plotNormalHistogram(df1$houses_area_pc, prob = FALSE,
+                    main = "houses_area_pc and normal distribution",
+                    linecol = "red",
+                    length = 1000) 
+
+plotNormalHistogram(df1$ln_houses_area_pc, prob = FALSE,
+                    main = "ln_houses_area_pc and normal distribution",
+                    linecol = "red",
+                    length = 1000) 
+
+########################### VARIABLES CHECKING ###########################
+# VARIABLE BUDGET_REVE_PC
+plotNormalHistogram(df1$budget_reve_pc, prob = FALSE,
+                    main = "budget_reve_pc and normal distribution",
+                    linecol = "red",
+                    length = 1000) 
+
+df1$ln_budget_reve_pc = log(df1$budget_reve_pc)
+
+plotNormalHistogram(df1$ln_budget_reve_pc, prob = FALSE,
+                    main = "ln_budget_reve_pc and normal distribution",
+                    linecol = "red",
+                    length = 1000) 
+
+g_ln_budget_reve_pc<-ggplot(df1, aes(x=birth_rate, y=ln_budget_reve_pc)) +geom_point(color="red")
+g_ln_budget_reve_pc
+
+jarque.bera.test(df1$budget_reve_pc) #p-value < 0.05, I reject H0 about normal distribution
+jarque.bera.test(df1$ln_budget_reve_pc) #p-value <0.05
+
+########################### VARIABLES CHECKING ###########################
+#VARIABLE FEMININITY_RATIO
+
+g_femininity_ratio<-ggplot(df1, aes(x=birth_rate, y=femininity_ratio)) +geom_point(color="red")
+g_femininity_ratio
+
+plotNormalHistogram(df1$femininity_ratio, prob = FALSE,
+                    main = "femininity_ratio and normal distribution",
+                    linecol = "red",
+                    length = 1000) 
+
+df1$ln_femininity_ratio = log(df1$femininity_ratio)
+
+plotNormalHistogram(df1$ln_femininity_ratio, prob = FALSE,
+                    main = "ln_femininity_ratio and normal distribution",
+                    linecol = "red",
+                    length = 1000) 
+
+g_ln_femininity_ratio<-ggplot(df1, aes(x=birth_rate, y=ln_femininity_ratio)) +geom_point(color="red")
+g_ln_femininity_ratio
+
+jarque.bera.test(df1$femininity_ratio) #p-value < 0.05, I reject H0 about normal distribution
+jarque.bera.test(df1$ln_femininity_ratio) #p-value <0.05, but higher than in previous case
+
+########################### VARIABLES CHECKING ###########################
+# VARIABLE COVID19_CASES
+
+plotNormalHistogram(df1$covid19_cases, prob = FALSE,
+                    main = "covid19_cases and normal distribution",
+                    linecol = "red",
+                    length = 1000) 
+
+df1$ln_covid19_cases = log(df1$covid19_cases)
+
+plotNormalHistogram(df1$ln_covid19_cases, prob = FALSE,
+                    main = "ln_covid19_cases and normal distribution",
+                    linecol = "red",
+                    length = 1000) 
+
+g_ln_covid19_cases<-ggplot(df1, aes(x=birth_rate, y=ln_covid19_cases)) +geom_point(color="red")
+g_ln_covid19_cases
+
+jarque.bera.test(df1$covid19_cases) #p-value < 0.05, I reject H0 about normal distribution
+jarque.bera.test(df1$ln_covid19_cases) #p-value < 0.05, I reject H0 about normal distribution
+
+########################### VARIABLES CHECKING ###########################
+#VARIABLE HEALTH_EXPENDITURE
+
+jarque.bera.test(df1$health_expenditure) #p-value < 0.05, I reject H0 about normal distribution
+df1$ln_health_expenditure = log(df1$health_expenditure)
+jarque.bera.test(df1$ln_health_expenditure) #p-value < 0.05
+
+plotNormalHistogram(df1$health_expenditure, prob = FALSE,
+                    main = "health_expenditure and normal distribution",
+                    linecol = "red",
+                    length = 1000) 
+
+plotNormalHistogram(df1$ln_health_expenditure, prob = FALSE,
+                    main = "ln_health_expenditure and normal distribution",
+                    linecol = "red",
+                    length = 1000) 
+
+
+########################### VARIABLES CHECKING ###########################
+#VARIABLE NURSERY_PLACES
+
+jarque.bera.test(df1$nursery_places) #p-value < 0.05, I reject H0 about normal distribution
+df1$ln_nursery_places = log(df1$nursery_places)
+jarque.bera.test(df1$ln_nursery_places) #p-value < 0.05, but p-value is higher
+
+# nursery_places has values equal to 0, so I can't use the logarithm, because I get infinity values (log from 0 is equal to inf)
+
+########################### VARIABLES CHECKING ###########################
+#VARIABLE CHILDREN
+
+jarque.bera.test(df1$children) #p-value < 0.05, I reject H0 about normal distribution
+df1$ln_children = log(df1$children)
+jarque.bera.test(df1$ln_children) #p-value < 0.05, but p-value is higher
+
+plotNormalHistogram(df1$children, prob = FALSE,
+                    main = "children and normal distribution",
+                    linecol = "red",
+                    length = 1000) 
+
+plotNormalHistogram(df1$ln_children, prob = FALSE,
+                    main = "ln_children and normal distribution",
+                    linecol = "red",
+                    length = 1000) 
+
+
+########################### VARIABLES CHECKING ###########################
+#VARIABLE URBANISATION_RATE
+
+jarque.bera.test(df1$urbanisation_rate) #p-value < 0.05, but p-value is higher than in the next case
+df1$ln_urbanisation_rate = log(df1$urbanisation_rate)
+jarque.bera.test(df1$ln_urbanisation_rate) #p-value < 0.05
+
+g_urbanisation_rate<-ggplot(df1, aes(x=birth_rate, y=urbanisation_rate)) +geom_point(color="red")
+g_urbanisation_rate
+
+plotNormalHistogram(df1$urbanisation_rate, prob = FALSE,
+                    main = "urbanisation_rate and normal distribution",
+                    linecol = "red",
+                    length = 1000) 
+
+#urbanisation_rate without log appears to have a distribution more similar to the normal distribution
+
+
+
+
+########################### VARIABLES CHECKING ###########################
+#VARIABLE COVID19_DEATHS
+
+plotNormalHistogram(df1$covid19_deaths, prob = FALSE,
+                    main = "covid19_deaths and normal distribution",
+                    linecol = "red",
+                    length = 1000) 
+
+#covid19_deaths has values equal to 0, so I can't use the logarithm, because I get infinity values (log from 0 is equal to inf)
+
+
 
 ########################### VARIABLES CHECKING ###########################
 #VARIABLE MARRIAGE_RATE
@@ -181,124 +644,15 @@ jarque.bera.test(df1$ln_divorce_rate) #p-value <0.05
 
 #divorce_rate will be placed in model
 
-########################### VARIABLES CHECKING ###########################
-# VARIABLE BUDGET_REVE_PC
-plotNormalHistogram(df1$budget_reve_pc, prob = FALSE,
-                    main = "budget_reve_pc and normal distribution",
-                    linecol = "red",
-                    length = 1000) 
 
-df1$ln_budget_reve_pc = log(df1$budget_reve_pc)
 
-plotNormalHistogram(df1$ln_budget_reve_pc, prob = FALSE,
-                    main = "ln_budget_reve_pc and normal distribution",
-                    linecol = "red",
-                    length = 1000) 
 
-g_ln_budget_reve_pc<-ggplot(df1, aes(x=birth_rate, y=ln_budget_reve_pc)) +geom_point(color="red")
-g_ln_budget_reve_pc
-
-jarque.bera.test(df1$budget_reve_pc) #p-value < 0.05, I reject H0 about normal distribution
-jarque.bera.test(df1$ln_budget_reve_pc) #p-value <0.05
-
-#budget_reve_pc with log and without log looks similar, I decide to model normal version of this variable
-
-########################### VARIABLES CHECKING ###########################
-#VARIABLE UNEMPLOYMENT_RATE
-
-plotNormalHistogram(df1$unemployment_rate, prob = FALSE,
-                    main = "unemployment_rate and normal distribution",
-                    linecol = "red",
-                    length = 1000) 
-
-df1$ln_unemployment_rate = log(df1$unemployment_rate)
-
-plotNormalHistogram(df1$ln_unemployment_rate, prob = FALSE,
-                    main = "ln_unemployment_rate and normal distribution",
-                    linecol = "red",
-                    length = 1000) 
-
-jarque.bera.test(df1$unemployment_rate) #p-value < 0.05, I reject H0 about normal distribution
-jarque.bera.test(df1$ln_unemployment_rate) #p-value <0.05, but higher than in previous case
-
-#ln_unemployment_rate will be placed in my model
 
 ########################### VARIABLES CHECKING ###########################
 #VARIABLE WOMEN_REPRODUCTIVE
 
 jarque.bera.test(df1$women_reproductive) #p-value > 0.05
 
-########################### VARIABLES CHECKING ###########################
-#VARIABLE FEMININITY_RATIO
-
-g_femininity_ratio<-ggplot(df1, aes(x=birth_rate, y=femininity_ratio)) +geom_point(color="red")
-g_femininity_ratio
-
-plotNormalHistogram(df1$femininity_ratio, prob = FALSE,
-                    main = "femininity_ratio and normal distribution",
-                    linecol = "red",
-                    length = 1000) 
-
-df1$ln_femininity_ratio = log(df1$femininity_ratio)
-
-plotNormalHistogram(df1$ln_femininity_ratio, prob = FALSE,
-                    main = "ln_femininity_ratio and normal distribution",
-                    linecol = "red",
-                    length = 1000) 
-
-g_ln_femininity_ratio<-ggplot(df1, aes(x=birth_rate, y=ln_femininity_ratio)) +geom_point(color="red")
-g_ln_femininity_ratio
-
-jarque.bera.test(df1$femininity_ratio) #p-value < 0.05, I reject H0 about normal distribution
-jarque.bera.test(df1$ln_femininity_ratio) #p-value <0.05, but higher than in previous case
-
-#ln_femininity_ratio will be placed in model
-
-########################### VARIABLES CHECKING ###########################
-#VARIABLE AVG_SALARY
-
-g_avg_salary<-ggplot(df1, aes(x=birth_rate, y=avg_salary)) +geom_point(color="red")
-g_avg_salary
-
-plotNormalHistogram(df1$avg_salary, prob = FALSE,
-                    main = "avg_salary and normal distribution",
-                    linecol = "red",
-                    length = 1000) 
-
-df1$ln_avg_salary = log(df1$avg_salary)
-
-plotNormalHistogram(df1$ln_avg_salary, prob = FALSE,
-                    main = "ln_avg_salary and normal distribution",
-                    linecol = "red",
-                    length = 1000) 
-
-g_ln_avg_salary<-ggplot(df1, aes(x=birth_rate, y=ln_avg_salary)) +geom_point(color="red")
-g_ln_avg_salary
-
-jarque.bera.test(df1$avg_salary) #p-value < 0.05, I reject H0 about normal distribution
-jarque.bera.test(df1$ln_avg_salary) #p-value <0.05
-
-#avg_salary will be placed in model
-
-########################### VARIABLES CHECKING ###########################
-#VARIABLE WOMEN_WORKING
-plotNormalHistogram(df1$women_working, prob = FALSE,
-                    main = "women_working and normal distribution",
-                    linecol = "red",
-                    length = 1000) 
-
-df1$ln_women_working = log(df1$women_working)
-
-plotNormalHistogram(df1$ln_women_working, prob = FALSE,
-                    main = "ln_women_working and normal distribution",
-                    linecol = "red",
-                    length = 1000) 
-
-g_ln_women_working<-ggplot(df1, aes(x=birth_rate, y=ln_women_working)) +geom_point(color="red")
-g_ln_women_working
-
-jarque.bera.test(df1$women_working) #p-value < 0.05, I reject H0 about normal distribution
-jarque.bera.test(df1$ln_women_working) #p-value > 0.05
 
 ########################### VARIABLES CHECKING ###########################
 #VARIABLE MEN_WORKING
@@ -320,24 +674,6 @@ g_ln_men_working
 jarque.bera.test(df1$men_working) #p-value < 0.05, I reject H0 about normal distribution
 jarque.bera.test(df1$ln_men_working) #p-value > 0.05
 
-########################### VARIABLES CHECKING ###########################
-#VARIABLE MEDIAN_HOUSE_PRICE
-
-jarque.bera.test(df1$median_house_price) #p-value < 0.05, I reject H0 about normal distribution
-df1$ln_median_house_price = log(df1$median_house_price)
-jarque.bera.test(df1$ln_median_house_price) #p-value < 0.05, but higher than in previous case
-
-plotNormalHistogram(df1$median_house_price, prob = FALSE,
-                    main = "median_house_price and normal distribution",
-                    linecol = "red",
-                    length = 1000) 
-
-plotNormalHistogram(df1$ln_median_house_price, prob = FALSE,
-                    main = "ln_median_house_price and normal distribution",
-                    linecol = "red",
-                    length = 1000)
-
-#ln_median_house_price will be placed in model
 
 ########################### VARIABLES CHECKING ###########################
 #VARIABLE HOUSE_RATIO
@@ -382,43 +718,9 @@ plotNormalHistogram(df1$ln_houses_area_pc, prob = FALSE,
 
 jarque.bera.test(df1$avg_people_per_house) #p-value > 0.05
 
-########################### VARIABLES CHECKING ###########################
-#VARIABLE EDUCATION_EXPENDITURE
 
-jarque.bera.test(df1$education_expenditure) #p-value < 0.05, I reject H0 about normal distribution
-df1$ln_education_expenditure = log(df1$education_expenditure)
-jarque.bera.test(df1$ln_education_expenditure) #p-value < 0.05
 
-plotNormalHistogram(df1$education_expenditure, prob = FALSE,
-                    main = "education_expenditure and normal distribution",
-                    linecol = "red",
-                    length = 1000) 
 
-plotNormalHistogram(df1$ln_education_expenditure, prob = FALSE,
-                    main = "ln_education_expenditure and normal distribution",
-                    linecol = "red",
-                    length = 1000) 
-
-#variable with or without log looks similar, so teh basic version will be placed in model
-
-########################### VARIABLES CHECKING ###########################
-#VARIABLE HEALTH_EXPENDITURE
-
-jarque.bera.test(df1$health_expenditure) #p-value < 0.05, I reject H0 about normal distribution
-df1$ln_health_expenditure = log(df1$health_expenditure)
-jarque.bera.test(df1$ln_health_expenditure) #p-value < 0.05
-
-plotNormalHistogram(df1$health_expenditure, prob = FALSE,
-                    main = "health_expenditure and normal distribution",
-                    linecol = "red",
-                    length = 1000) 
-
-plotNormalHistogram(df1$ln_health_expenditure, prob = FALSE,
-                    main = "ln_health_expenditure and normal distribution",
-                    linecol = "red",
-                    length = 1000) 
-
-#health_expenditure will be placed in model
 
 ########################### VARIABLES CHECKING ###########################
 #VARIABLE SOCIAL_EXPENDITURE
@@ -458,33 +760,7 @@ plotNormalHistogram(df1$ln_family_expenditure, prob = FALSE,
 
 #family_expenditure will be placed in model
 
-########################### VARIABLES CHECKING ###########################
-#VARIABLE CHILDREN
 
-jarque.bera.test(df1$children) #p-value < 0.05, I reject H0 about normal distribution
-df1$ln_children = log(df1$children)
-jarque.bera.test(df1$ln_children) #p-value < 0.05, but p-value is higher
-
-plotNormalHistogram(df1$children, prob = FALSE,
-                    main = "children and normal distribution",
-                    linecol = "red",
-                    length = 1000) 
-
-plotNormalHistogram(df1$ln_children, prob = FALSE,
-                    main = "ln_children and normal distribution",
-                    linecol = "red",
-                    length = 1000) 
-
-#i decided to use basic version of thos variable, because i want to create interaction this variable with other
-
-########################### VARIABLES CHECKING ###########################
-#VARIABLE NURSERY_PLACES
-
-jarque.bera.test(df1$nursery_places) #p-value < 0.05, I reject H0 about normal distribution
-df1$ln_nursery_places = log(df1$nursery_places)
-jarque.bera.test(df1$ln_nursery_places) #p-value < 0.05, but p-value is higher
-
-# nursery_places has values equal to 0, so I can't use the logarithm, because I get infinity values (log from 0 is equal to inf)
 
 ########################### VARIABLES CHECKING ###########################
 #VARIABLE DOCTORS
@@ -505,45 +781,9 @@ plotNormalHistogram(df1$ln_doctors,prob = FALSE,
 
 #ln_doctors will be placed in model
 
-########################### VARIABLES CHECKING ###########################
-#VARIABLE URBANISATION_RATE
 
-jarque.bera.test(df1$urbanisation_rate) #p-value < 0.05, but p-value is higher than in the next case
-df1$ln_urbanisation_rate = log(df1$urbanisation_rate)
-jarque.bera.test(df1$ln_urbanisation_rate) #p-value < 0.05
 
-g_urbanisation_rate<-ggplot(df1, aes(x=birth_rate, y=urbanisation_rate)) +geom_point(color="red")
-g_urbanisation_rate
-
-plotNormalHistogram(df1$urbanisation_rate, prob = FALSE,
-                    main = "urbanisation_rate and normal distribution",
-                    linecol = "red",
-                    length = 1000) 
-
-#urbanisation_rate without log appears to have a distribution more similar to the normal distribution
-
-########################### VARIABLES CHECKING ###########################
-#VARIABLE BUS STOPS
-
-jarque.bera.test(df1$bus_stops) #p-value < 0.05, I reject H0 about normal distribution
-df1$ln_bus_stops = log(df1$bus_stops)
-jarque.bera.test(df1$ln_bus_stops) #p-value < 0.05, but p-value is higher
-
-#ln_bus_stops will be placed in model
-
-############################################################################################
-########################### CREATE INTERACTION BETWEEN VARIABLES ###########################
-
-df1$nurseryxchildren=df1$nursery_places*df1$children
-df1$education_expenditurexchildren=df1$education_expenditure*df1$children
-
-df1$houses_area_pc_2 = df1$houses_area_pc**2
-df1$avg_people_per_house_2 = df1$avg_people_per_house**2
-df1$house_ratio_2 = df1$house_ratio**2
-
-###################################################################
-########################### FIRST MODEL ###########################
-#MODEL 1
+#
 model1=lm(ln_birth_rate~ln_covid19_cases + covid19_deaths + ln_covid19_quarantine + ln_marriage_rate +
             divorce_rate + budget_reve_pc + ln_unemployment_rate + women_reproductive + ln_femininity_ratio + avg_salary +
             ln_women_working + ln_men_working + ln_median_house_price + house_ratio + house_ratio_2 + houses_area_pc +
