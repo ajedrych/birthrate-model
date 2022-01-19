@@ -1,4 +1,4 @@
-# ECONOMETRICS MODEL
+# Econometrics model
 
 ### 👶 Has COVID-19 made us not want to have children? - analysis of birth rate determinants
 
