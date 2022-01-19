@@ -1,5 +1,6 @@
-# 👶 Has COVID-19 made us not want to have children?
-## Analysis of birth rate determinants
+# ECONOMETRICS MODEL
+
+### 👶 Has COVID-19 made us not want to have children? - analysis of birth rate determinants
 
 ### R 
 The model was estimated in R language.
